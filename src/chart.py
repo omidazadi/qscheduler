@@ -82,3 +82,36 @@ class Chart:
         ax.legend()
 
         return fig
+    
+    def draw_core_frequency(self, cores: list[Core]):
+        fig, ax = plt.subplots()
+        fig.set_size_inches((8, 6))
+        fig.subplots_adjust(left=0.10, right=0.90, top=0.90, bottom=0.10)
+        ax.set_title('Frequency of Cores')
+        ax.set_xlabel('Time(s)')
+        ax.set_ylabel('Frequency(GHz)')
+        ax.grid(True)
+
+        for core in cores:
+            ax.plot([time for (time, freq,) in core.freq_history], [freq for (time, freq,) in core.freq_history], 
+                    color=hsv_to_rgb((float(core.core_id) / len(cores), 0.5, 1.0)), label=core.get_full_name())
+        ax.legend()
+
+        return fig
+    
+    def draw_core_energy(self, cores: list[Core], duration: int):
+        fig, ax = plt.subplots()
+        fig.set_size_inches((8, 6))
+        fig.subplots_adjust(left=0.10, right=0.90, top=0.90, bottom=0.10)
+        ax.set_title('Energy Consumption of Cores')
+        ax.set_xlabel('Time(s)')
+        ax.set_ylabel('Energy(mJ)')
+        ax.grid(True)
+
+        for core in cores:
+            ax.plot([time for (time, energy,) in core.energy_history], [energy for (time, energy,) in core.energy_history], 
+                    color=hsv_to_rgb((float(core.core_id) / len(cores), 0.5, 1.0)), label=core.get_full_name())
+            ax.axhline(core.allowed_avg_power * duration, linestyle='--', color=hsv_to_rgb((float(core.core_id) / len(cores), 0.5, 1.0)))
+        ax.legend()
+
+        return fig

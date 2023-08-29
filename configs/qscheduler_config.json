@@ -1,9 +1,16 @@
 {
     "mapping-algorithm": "worst-fit",
-    "learning-rate": 0.1,
-    "exploration-proboblity": 0.1,
-    "episodes": 10000,
+    "learning-rate": 0.5,
+    "exploration-proboblity": 0.2,
+    "exploration-decay-factor": 0.999,
+    "episodes": 20000,
     "soft-schedule-reward": 2,
     "soft-delay-reward": 1,
-    "firm-schedule-reward": 10
+    "soft-miss-penalty": -18,
+    "firm-schedule-reward": 5,
+    "firm-miss-penalty": -45,
+    "dvfs-up-reward": -10,
+    "dvfs-down-reward": 10,
+    "finish-reward": 1000,
+    "retry": 3
 }

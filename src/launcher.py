@@ -6,15 +6,6 @@ from ptask_stat import PTaskStat
 from qscheduler import QScheduler
 from chart import Chart
 
-def print_core_mapping(cores: list[Core]):
-    for core in cores:
-        print(f'core: {core.get_full_name()}')
-        sum_ptask_resources = 0
-        for ptask in core.ptasks:
-            print(ptask)
-            sum_ptask_resources += ptask.needed_resource()
-        print('\n')
-
 def launch():
     core_config = json.load(open('configs/core_config.json', 'r'))
     qscheduler_config = json.load(open('configs/qscheduler_config.json', 'r'))
@@ -24,7 +15,8 @@ def launch():
     for core_id in simulation_config['cores']:
         core_name, allowed_avg_power = simulation_config['cores'][core_id]['name'], simulation_config['cores'][core_id]['allowed-average-power-mW']
         cores.append(Core(core_name, core_id, core_config[core_name]['average-cpi'], core_config[core_name]['1-GHz-power-mW'], 
-                            core_config[core_name]['dfvs-levels'], allowed_avg_power, simulation_config['second-slice-size']))
+                            core_config[core_name]['dvfs-change-lock'], core_config[core_name]['dfvs-levels'], 
+                            simulation_config['cores'][core_id]['default-dvfs-level'], allowed_avg_power, simulation_config['second-slice-size']))
             
     total_cpu_resource = 0
     for core in cores:
@@ -35,8 +27,10 @@ def launch():
                              simulation_config['task-periods'], simulation_config['real-time-modes'], simulation_config['second-slice-size'])
     
     qscheduler = QScheduler(qscheduler_config['mapping-algorithm'], qscheduler_config['learning-rate'], qscheduler_config['exploration-proboblity'],
-                            qscheduler_config['episodes'], qscheduler_config['soft-schedule-reward'], qscheduler_config['soft-delay-reward'], 
-                            qscheduler_config['firm-schedule-reward'], simulation_config['second-slice-size'])
+                            qscheduler_config['exploration-decay-factor'], qscheduler_config['episodes'], qscheduler_config['soft-schedule-reward'], 
+                            qscheduler_config['soft-delay-reward'], qscheduler_config['soft-miss-penalty'], qscheduler_config['firm-schedule-reward'], 
+                            qscheduler_config['firm-miss-penalty'], qscheduler_config['dvfs-up-reward'], qscheduler_config['dvfs-down-reward'], 
+                            qscheduler_config['finish-reward'], qscheduler_config['retry'], simulation_config['second-slice-size'])
 
     qscheduler.map_ptasks_to_cores(cores, ptasks)
 
@@ -58,12 +52,16 @@ def launch():
     json.dump(list(map(PTaskStat.ptask_stat_to_dict, ptask_stats)), open(f'{simulation_path}/ptasks.json', 'w'), indent=4)
     
     chart = Chart()
-    timeline_fig = chart.draw_core_timeline(cores, simulation_config['second-slice-size'], simulation_config['duration'])
-    timeline_fig.savefig(f'{simulation_path}/core_timeline.jpg')
-    schedulability_fig = chart.draw_ptask_schedulability(ptask_stats)
-    schedulability_fig.savefig(f'{simulation_path}/task_schedulability.jpg')
-    timing_fig = chart.draw_ptask_timing(ptask_stats)
-    timing_fig.savefig(f'{simulation_path}/task_timing.jpg')
+    core_timeline_fig = chart.draw_core_timeline(cores, simulation_config['second-slice-size'], simulation_config['duration'])
+    core_timeline_fig.savefig(f'{simulation_path}/core_timeline.jpg')
+    ptask_schedulability_fig = chart.draw_ptask_schedulability(ptask_stats)
+    ptask_schedulability_fig.savefig(f'{simulation_path}/task_schedulability.jpg')
+    ptask_timing_fig = chart.draw_ptask_timing(ptask_stats)
+    ptask_timing_fig.savefig(f'{simulation_path}/task_timing.jpg')
+    core_frequency_fig = chart.draw_core_frequency(cores)
+    core_frequency_fig.savefig(f'{simulation_path}/core_frequency.jpg')
+    core_energy_fig = chart.draw_core_energy(cores, simulation_config['duration'])
+    core_energy_fig.savefig(f'{simulation_path}/core_energy.jpg')
 
 if __name__ == '__main__':
     launch()

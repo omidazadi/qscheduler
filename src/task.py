@@ -14,3 +14,10 @@ class Task:
     
     def delay(self):
         self.is_delayed = True
+
+    @staticmethod
+    def reset(tasks):
+        for task in tasks:
+            task.start_time = -1
+            task.finish_time = -1
+            task.is_delayed = False
