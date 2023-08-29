@@ -1,0 +1,13 @@
+{
+    "duration": 30,
+    "task-set-size": 10,
+    "utilization": 0.7,
+    "second-slice-size": 1000000,
+    "task-periods": {
+        "small": [0.5, 1.5]
+    },
+    "cores": {
+        "Cortex-A7": 2,
+        "Cortex-A15": 2
+    }
+}

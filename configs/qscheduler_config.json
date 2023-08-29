@@ -1,0 +1,9 @@
+{
+    "mapping-algorithm": "worst-fit",
+    "learning-rate": 0.1,
+    "exploration-proboblity": 0.1,
+    "episodes": 10000,
+    "soft-schedule-reward": 2,
+    "soft-delay-reward": 1,
+    "firm-schedule-reward": 10
+}
