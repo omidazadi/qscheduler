@@ -39,7 +39,7 @@ class QScheduler:
     def learn_qtable(self, core: Core, tasks: list[Task]):
         qtable = {}
         for episode in range(self.episodes):
-            core.reset_scheduled_tasks()
+            core.reset_core()
             qstate = QState(0, 0, ())
             self.add_qstate_to_qtable(qstate, qtable, tasks, core)
             (qstate, terminated,) = self.learning_step(qstate, qtable, tasks, core)
@@ -48,7 +48,7 @@ class QScheduler:
         return qtable
 
     def schedule_with_qtable(self, core: Core, tasks: list[Task], qtable: dict[QState, dict]):
-        core.reset_scheduled_tasks()
+        core.reset_core()
         qstate = QState(0, 0, ())
         self.add_qstate_to_qtable(qstate, qtable, tasks, core)
         (qstate, terminated,) = self.solution_step(qstate, qtable, tasks, core)
@@ -95,7 +95,7 @@ class QScheduler:
             qtable[qstate] = {'finished': {'qvalue': 0, 'reward': None}}
             return
         
-        if core.schedulable(tasks[qstate.task_num]):
+        if core.is_schedulable(tasks[qstate.task_num]):
             if tasks[qstate.task_num].priority == 'soft':
                 qtable[qstate]['schedule'] = {'qvalue': 0, 'reward': self.soft_schedule_reward}
             elif tasks[qstate.task_num].priority == 'firm':
@@ -108,13 +108,14 @@ class QScheduler:
                 return
         
         if len(qstate.delayed) > 0:
-            if core.schedulable(tasks[qstate.delayed[0]]):
-                qtable[qstate]['schedule-delayed'] = {'qvalue': 0, 'reward': self.soft_schedule_reward}
+            if core.is_schedulable(tasks[qstate.delayed[0]]):
+                qtable[qstate]['schedule-delayed'] = {'qvalue': 0, 'reward': 0}
             else:
                 qtable[qstate] = {'failure': {'qvalue': float('-inf'), 'reward': None}}
                 return
         
-        qtable[qstate]['miss'] = {'qvalue': 0, 'reward': 0}
+        if tasks[qstate.task_num].priority != 'hard':
+            qtable[qstate]['miss'] = {'qvalue': 0, 'reward': 0}
         
         if tasks[qstate.task_num].priority == 'soft':
             qtable[qstate]['delay'] = {'qvalue': 0, 'reward': self.soft_delay_reward}
@@ -129,6 +130,8 @@ class QScheduler:
             core.schedule(task)
             return QState(task.finish_time, qstate.task_num, qstate.delayed[1:])
         elif action == 'miss':
+            task = tasks[qstate.task_num]
+            core.miss(task)
             return QState(qstate.time, qstate.task_num + 1, qstate.delayed)
         else:
             return QState(qstate.time, qstate.task_num + 1, (*qstate.delayed, qstate.task_num,))

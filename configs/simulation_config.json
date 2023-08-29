@@ -6,8 +6,23 @@
     "task-periods": {
         "small": [0.5, 1.5]
     },
+    "real-time-modes": ["soft", "firm", "hard"],
     "cores": {
-        "Cortex-A7": 2,
-        "Cortex-A15": 2
+        "1": {
+            "name": "Cortex-A7",
+            "allowed-average-power-mW": 50
+        },
+        "2": {
+            "name": "Cortex-A7",
+            "allowed-average-power-mW": 50
+        },
+        "3": {
+            "name": "Cortex-A15",
+            "allowed-average-power-mW": 200
+        },
+        "4": {
+            "name": "Cortex-A15",
+            "allowed-average-power-mW": 200
+        }
     }
 }
